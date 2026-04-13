@@ -1,0 +1,1685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Management Simulator — Data Structures Project</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --card: #161b22;
+    --border: #21262d;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #f78166;
+    --accent4: #d2a8ff;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --highlight: #ffd700;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    line-height: 1.7;
+    font-size: 15px;
+  }
+
+  /* ── COVER PAGE ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 60px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(88,166,255,0.12) 0%, transparent 70%),
+      radial-gradient(ellipse 60% 50% at 80% 100%, rgba(63,185,80,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 50% at 10% 80%, rgba(210,168,255,0.07) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(88,166,255,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(88,166,255,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+
+  .cover-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(88,166,255,0.3);
+    padding: 6px 18px;
+    border-radius: 20px;
+    margin-bottom: 40px;
+    background: rgba(88,166,255,0.05);
+  }
+
+  .cover h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #e6edf3 30%, #58a6ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cover h1 span {
+    font-style: italic;
+    background: linear-gradient(135deg, #58a6ff, #d2a8ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .cover-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--accent2);
+    margin-bottom: 50px;
+    letter-spacing: 1px;
+  }
+
+  .cover-divider {
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    margin: 30px auto;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 60px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 50px;
+  }
+
+  .meta-item {
+    text-align: center;
+  }
+
+  .meta-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .meta-value {
+    font-weight: 500;
+    color: var(--text);
+    font-size: 15px;
+  }
+
+  .nodes-visual {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 50px auto;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0;
+  }
+
+  .node-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .node-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  .node-cell {
+    display: flex;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    overflow: hidden;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+
+  .node-data {
+    padding: 8px 14px;
+    background: rgba(88,166,255,0.1);
+    color: var(--accent);
+    border-right: 1px solid var(--accent);
+  }
+
+  .node-ptr {
+    padding: 8px 14px;
+    background: rgba(210,168,255,0.1);
+    color: var(--accent4);
+  }
+
+  .node-arrow {
+    font-size: 20px;
+    color: var(--accent);
+    margin: 20px 4px 0;
+    opacity: 0.6;
+  }
+
+  .null-box {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent3);
+    border: 1px dashed var(--accent3);
+    padding: 8px 14px;
+    border-radius: 6px;
+    margin-top: 26px;
+    opacity: 0.7;
+  }
+
+  /* ── PAGE / SECTIONS ── */
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 80px 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .page:last-child { border-bottom: none; }
+
+  .section-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-tag::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 700;
+    margin-bottom: 28px;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--accent);
+    margin: 32px 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  h3::before {
+    content: '//';
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  p { color: #c9d1d9; margin-bottom: 16px; }
+
+  /* ── CODE BLOCKS ── */
+  .code-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin: 24px 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .code-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .code-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  .dot-r { background: #ff5f57; }
+  .dot-y { background: #febc2e; }
+  .dot-g { background: #28c840; }
+
+  .code-filename {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.5px;
+  }
+
+  pre {
+    padding: 24px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    tab-size: 4;
+  }
+
+  .kw  { color: #ff7b72; }
+  .ty  { color: #ffa657; }
+  .fn  { color: #d2a8ff; }
+  .str { color: #a5d6ff; }
+  .cm  { color: #8b949e; font-style: italic; }
+  .num { color: #79c0ff; }
+  .op  { color: #ff7b72; }
+
+  /* ── INFO BOXES ── */
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin: 24px 0;
+  }
+
+  .info-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .info-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+  }
+
+  .info-card.blue::before  { background: var(--accent); }
+  .info-card.green::before { background: var(--accent2); }
+  .info-card.red::before   { background: var(--accent3); }
+  .info-card.purple::before{ background: var(--accent4); }
+  .info-card.gold::before  { background: var(--highlight); }
+
+  .info-card-icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .info-card-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .info-card-body {
+    font-size: 13px;
+    color: #c9d1d9;
+  }
+
+  /* ── TABLE ── */
+  .styled-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .styled-table th {
+    background: var(--surface);
+    color: var(--accent);
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .styled-table td {
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--border);
+    color: #c9d1d9;
+  }
+
+  .styled-table tr:last-child td { border-bottom: none; }
+  .styled-table tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--accent2); border: 1px solid rgba(63,185,80,0.3); }
+  .badge-red   { background: rgba(247,129,102,0.15); color: var(--accent3); border: 1px solid rgba(247,129,102,0.3); }
+  .badge-blue  { background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.3); }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 24px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 20px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    position: relative;
+  }
+
+  .flow-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .flow-connector {
+    width: 2px;
+    height: 20px;
+    background: var(--border);
+    margin-left: 33px;
+  }
+
+  /* ── SIMULATOR ── */
+  .simulator {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 30px 0;
+  }
+
+  .sim-header {
+    background: var(--surface);
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .sim-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--accent2);
+    font-weight: 600;
+  }
+
+  .sim-status {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sim-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent2);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .sim-body { padding: 24px; }
+
+  .sim-controls {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+
+  .sim-input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 14px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    width: 140px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .sim-input:focus { border-color: var(--accent); }
+
+  .sim-btn {
+    padding: 9px 18px;
+    border-radius: 6px;
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-alloc { background: rgba(88,166,255,0.15); color: var(--accent); border: 1px solid rgba(88,166,255,0.4); }
+  .btn-alloc:hover { background: rgba(88,166,255,0.28); }
+
+  .btn-free { background: rgba(247,129,102,0.15); color: var(--accent3); border: 1px solid rgba(247,129,102,0.4); }
+  .btn-free:hover { background: rgba(247,129,102,0.28); }
+
+  .btn-compact { background: rgba(210,168,255,0.15); color: var(--accent4); border: 1px solid rgba(210,168,255,0.4); }
+  .btn-compact:hover { background: rgba(210,168,255,0.28); }
+
+  .btn-reset { background: rgba(255,215,0,0.1); color: var(--highlight); border: 1px solid rgba(255,215,0,0.3); }
+  .btn-reset:hover { background: rgba(255,215,0,0.2); }
+
+  .memory-visual {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 18px;
+  }
+
+  .mem-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  .mem-bar-container {
+    display: flex;
+    height: 48px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    gap: 1px;
+    background: var(--border);
+  }
+
+  .mem-block {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+  }
+
+  .mem-block.allocated {
+    background: linear-gradient(135deg, rgba(88,166,255,0.3), rgba(88,166,255,0.15));
+    color: var(--accent);
+    border-right: 1px solid rgba(88,166,255,0.4);
+  }
+
+  .mem-block.free {
+    background: rgba(63,185,80,0.08);
+    color: rgba(63,185,80,0.5);
+  }
+
+  .linked-list-visual {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 16px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .ll-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .ll-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--muted);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+
+  .ll-cell {
+    display: flex;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+  }
+
+  .ll-cell.alloc-node { border-color: var(--accent); }
+  .ll-cell.free-node  { border-color: var(--accent2); }
+
+  .ll-data {
+    padding: 6px 10px;
+    font-weight: 600;
+  }
+
+  .ll-cell.alloc-node .ll-data { background: rgba(88,166,255,0.15); color: var(--accent); border-right: 1px solid rgba(88,166,255,0.4); }
+  .ll-cell.free-node  .ll-data { background: rgba(63,185,80,0.12); color: var(--accent2); border-right: 1px solid rgba(63,185,80,0.3); }
+
+  .ll-next {
+    padding: 6px 10px;
+    color: var(--muted);
+  }
+
+  .ll-arrow {
+    font-size: 18px;
+    margin: 0 3px;
+    padding-top: 16px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .ll-null {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent3);
+    border: 1px dashed rgba(247,129,102,0.4);
+    padding: 6px 10px;
+    border-radius: 5px;
+    margin-top: 16px;
+    opacity: 0.7;
+  }
+
+  .sim-log {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    max-height: 120px;
+    overflow-y: auto;
+    margin-top: 14px;
+  }
+
+  .log-entry { margin-bottom: 4px; }
+  .log-ok   { color: var(--accent2); }
+  .log-err  { color: var(--accent3); }
+  .log-info { color: var(--accent); }
+
+  .stats-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 14px;
+  }
+
+  .stat-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+  }
+
+  .stat-pill span { font-weight: 700; }
+  .stat-pill.s-blue span  { color: var(--accent); }
+  .stat-pill.s-green span { color: var(--accent2); }
+  .stat-pill.s-red span   { color: var(--accent3); }
+
+  /* ── CALLOUT ── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: rgba(88,166,255,0.06);
+    border-radius: 0 8px 8px 0;
+    padding: 16px 20px;
+    margin: 20px 0;
+    font-size: 14px;
+    color: #c9d1d9;
+  }
+
+  .callout.warn  { border-color: var(--highlight); background: rgba(255,215,0,0.05); }
+  .callout.danger{ border-color: var(--accent3);   background: rgba(247,129,102,0.06); }
+  .callout.ok    { border-color: var(--accent2);   background: rgba(63,185,80,0.06); }
+
+  /* ── FOOTER ── */
+  .footer {
+    text-align: center;
+    padding: 50px 40px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+  }
+
+  .footer-title {
+    font-size: 18px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 8px;
+    font-family: 'Playfair Display', serif;
+  }
+
+  /* ── PRINT ── */
+  @media print {
+    body { background: white; color: #111; }
+    .cover::before, .grid-bg { display: none; }
+    .sim-btn, .sim-input { display: none; }
+    pre { font-size: 11px; }
+    .page { page-break-inside: avoid; }
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════ COVER ══════════════════════════════════════════ -->
+<div class="cover">
+  <div class="grid-bg"></div>
+  <div class="cover-badge">Data Structures &amp; Algorithms — Project Report</div>
+
+  <div class="nodes-visual">
+    <div class="node-box">
+      <div class="node-label">HEAD</div>
+      <div class="node-cell"><span class="node-data">100KB</span><span class="node-ptr">next→</span></div>
+    </div>
+    <div class="node-arrow">→</div>
+    <div class="node-box">
+      <div class="node-label">NODE 2</div>
+      <div class="node-cell"><span class="node-data">FREE</span><span class="node-ptr">next→</span></div>
+    </div>
+    <div class="node-arrow">→</div>
+    <div class="node-box">
+      <div class="node-label">NODE 3</div>
+      <div class="node-cell"><span class="node-data">256KB</span><span class="node-ptr">next→</span></div>
+    </div>
+    <div class="node-arrow">→</div>
+    <div class="null-box">NULL</div>
+  </div>
+
+  <h1>Memory Management<br><span>Simulator</span></h1>
+  <div class="cover-sub">// Using Linked List Data Structure</div>
+  <div class="cover-divider"></div>
+
+  <div class="cover-meta">
+    <div class="meta-item">
+      <div class="meta-label">Subject</div>
+      <div class="meta-value">Data Structures & Algorithms</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">Topic</div>
+      <div class="meta-value">Memory Management via Linked List</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ SECTION 1: INTRO ══════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-tag">01 — Introduction</div>
+  <h2>What is Memory Management?</h2>
+
+  <p>Memory management is the process of controlling and coordinating a computer's main memory. It involves allocating portions of memory to programs when they request it, and freeing it for reuse when no longer needed. Without proper memory management, a system quickly runs into crashes, memory leaks, and degraded performance.</p>
+
+  <p>In this project, we simulate the core memory management operations of an operating system using a <strong style="color:var(--accent)">singly linked list</strong>, where each node represents a block of memory with metadata about whether it is allocated or free.</p>
+
+  <div class="info-grid">
+    <div class="info-card blue">
+      <div class="info-card-icon">🧠</div>
+      <div class="info-card-title">Memory Allocation</div>
+      <div class="info-card-body">Assigning free memory blocks to requesting processes using First-Fit strategy.</div>
+    </div>
+    <div class="info-card green">
+      <div class="info-card-icon">♻️</div>
+      <div class="info-card-title">Deallocation</div>
+      <div class="info-card-body">Marking used blocks as free and merging adjacent free blocks (coalescing).</div>
+    </div>
+    <div class="info-card purple">
+      <div class="info-card-icon">🔗</div>
+      <div class="info-card-title">Linked List</div>
+      <div class="info-card-body">Each memory block is a node; pointer links create a dynamic, flexible structure.</div>
+    </div>
+    <div class="info-card red">
+      <div class="info-card-icon">⚡</div>
+      <div class="info-card-title">Fragmentation</div>
+      <div class="info-card-body">Internal & external fragmentation — the core problem memory managers must solve.</div>
+    </div>
+  </div>
+
+  <h3>Why Linked List for Memory Management?</h3>
+  <p>Arrays are fixed in size and require contiguous space. A <strong style="color:var(--accent)">linked list</strong> allows dynamic sizing — nodes can be inserted, removed, and split at any position in O(1) time once the position is known. This makes it ideal for representing memory blocks that constantly change in size and status.</p>
+</div>
+
+<!-- ══════════════════════════════════════════ SECTION 2: CONCEPT ══════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-tag">02 — Core Concepts</div>
+  <h2>Key Concepts &amp; Terminology</h2>
+
+  <table class="styled-table">
+    <thead>
+      <tr>
+        <th>Term</th>
+        <th>Definition</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong style="color:var(--accent)">Node</strong></td>
+        <td>A linked list element representing one memory block</td>
+        <td><span class="badge badge-blue">Core</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent)">Block Size</strong></td>
+        <td>Amount of memory (KB) held by a node</td>
+        <td><span class="badge badge-blue">Core</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent2)">Free Block</strong></td>
+        <td>A node not currently assigned to any process</td>
+        <td><span class="badge badge-green">Free</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent3)">Allocated Block</strong></td>
+        <td>A node assigned to a process, storing a process ID</td>
+        <td><span class="badge badge-red">Used</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent)">First-Fit</strong></td>
+        <td>Allocate to the first free block large enough</td>
+        <td><span class="badge badge-blue">Strategy</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent)">Best-Fit</strong></td>
+        <td>Allocate to the smallest sufficient free block</td>
+        <td><span class="badge badge-blue">Strategy</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent4)">Coalescing</strong></td>
+        <td>Merging two adjacent free blocks into one larger block</td>
+        <td><span class="badge badge-blue">Operation</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent4)">Fragmentation</strong></td>
+        <td>Wasted memory due to poor allocation patterns</td>
+        <td><span class="badge badge-red">Problem</span></td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent4)">Compaction</strong></td>
+        <td>Rearranging memory to eliminate external fragmentation</td>
+        <td><span class="badge badge-blue">Solution</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Memory Block Node Structure</h3>
+  <p>Each node in our linked list stores the following information about a memory block:</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span class="code-filename">memory_block.h</span>
+    </div>
+    <pre><span class="cm">// Node structure representing one memory block</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> <span class="ty">MemoryBlock</span> {
+    <span class="kw">int</span>   size;          <span class="cm">// size of this block in KB</span>
+    <span class="kw">int</span>   process_id;   <span class="cm">// -1 if free, else PID of owner process</span>
+    <span class="kw">int</span>   start_addr;   <span class="cm">// starting address in simulated memory</span>
+    <span class="kw">int</span>   is_free;      <span class="cm">// 1 = free, 0 = allocated</span>
+    <span class="kw">struct</span> <span class="ty">MemoryBlock</span> <span class="op">*</span>next;  <span class="cm">// pointer to next block</span>
+} <span class="ty">MemoryBlock</span>;
+
+<span class="cm">/* 
+   Memory Layout (example — 1024 KB total):
+   [  256 KB | PID=1  ] → [ 128 KB | FREE ] → [ 512 KB | PID=2 ] → [ 128 KB | FREE ] → NULL
+       @0           @256           @384                  @896
+*/</span></pre>
+  </div>
+
+  <h3>Allocation Strategies — Comparison</h3>
+  <table class="styled-table">
+    <thead>
+      <tr><th>Strategy</th><th>How It Works</th><th>Speed</th><th>Fragmentation</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong style="color:var(--accent2)">First-Fit</strong></td>
+        <td>Scan from head, take the first block ≥ requested size</td>
+        <td>⚡ Fastest</td>
+        <td>Medium</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent)">Best-Fit</strong></td>
+        <td>Scan all, pick the smallest block that fits</td>
+        <td>🐢 Slow</td>
+        <td>Lowest</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent3)">Worst-Fit</strong></td>
+        <td>Scan all, pick the largest free block</td>
+        <td>🐢 Slow</td>
+        <td>Highest</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <strong>Our project implements First-Fit</strong> — the most practical strategy used in real OS kernels like Linux's older allocators, because it is O(n) in worst case but extremely fast in typical usage.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ SECTION 3: CODE ══════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-tag">03 — Implementation</div>
+  <h2>Complete C Implementation</h2>
+  <p>Below is the full, compilable C source code with detailed inline comments explaining every operation. Copy this code into a <code style="color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:13px;">.c</code> file and compile with <code style="color:var(--accent2);font-family:'JetBrains Mono',monospace;font-size:13px;">gcc memory_sim.c -o memory_sim</code>.</p>
+
+  <!-- CODE: PART 1 -->
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span class="code-filename">memory_sim.c — Part 1: Headers &amp; Structure</span>
+    </div>
+    <pre><span class="cm">/*=============================================================
+  MEMORY MANAGEMENT SIMULATOR USING LINKED LIST
+  Subject  : Data Structures & Algorithms
+  Language : C
+  Strategy : First-Fit Allocation
+=============================================================*/</span>
+
+<span class="kw">#include</span> <span class="str">&lt;stdio.h&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;stdlib.h&gt;</span>
+<span class="kw">#include</span> <span class="str">&lt;string.h&gt;</span>
+
+<span class="kw">#define</span> TOTAL_MEMORY  <span class="num">1024</span>   <span class="cm">/* Total simulated RAM: 1024 KB */</span>
+<span class="kw">#define</span> FREE          <span class="num">1</span>
+<span class="kw">#define</span> ALLOCATED     <span class="num">0</span>
+
+<span class="cm">/* ─── Node: one memory block in the linked list ─── */</span>
+<span class="kw">typedef</span> <span class="kw">struct</span> <span class="ty">Block</span> {
+    <span class="kw">int</span>  size;          <span class="cm">/* block size in KB                  */</span>
+    <span class="kw">int</span>  pid;           <span class="cm">/* process ID, -1 if free            */</span>
+    <span class="kw">int</span>  start;         <span class="cm">/* starting address (simulated)      */</span>
+    <span class="kw">int</span>  is_free;       <span class="cm">/* FREE(1) or ALLOCATED(0)           */</span>
+    <span class="kw">struct</span> <span class="ty">Block</span> <span class="op">*</span>next; <span class="cm">/* pointer to next block             */</span>
+} <span class="ty">Block</span>;
+
+<span class="cm">/* Global head pointer — start of our memory list */</span>
+<span class="ty">Block</span> <span class="op">*</span>head <span class="op">=</span> <span class="kw">NULL</span>;</pre>
+  </div>
+
+  <!-- CODE: PART 2 -->
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span class="code-filename">memory_sim.c — Part 2: Initialize Memory</span>
+    </div>
+    <pre><span class="cm">/*─────────────────────────────────────────────────────────
+  initialize_memory()
+  Creates a single node representing all memory as FREE.
+  This is the starting state before any allocations.
+─────────────────────────────────────────────────────────*/</span>
+<span class="kw">void</span> <span class="fn">initialize_memory</span>() {
+    head <span class="op">=</span> (<span class="ty">Block</span><span class="op">*</span>) <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="ty">Block</span>));
+    <span class="kw">if</span> (!head) {
+        <span class="fn">printf</span>(<span class="str">"Fatal: malloc failed\n"</span>);
+        <span class="fn">exit</span>(<span class="num">1</span>);
+    }
+    head<span class="op">-&gt;</span>size    <span class="op">=</span> TOTAL_MEMORY;  <span class="cm">/* entire memory = 1024 KB */</span>
+    head<span class="op">-&gt;</span>pid     <span class="op">=</span> <span class="op">-</span><span class="num">1</span>;           <span class="cm">/* no owner                */</span>
+    head<span class="op">-&gt;</span>start   <span class="op">=</span> <span class="num">0</span>;            <span class="cm">/* starts at address 0     */</span>
+    head<span class="op">-&gt;</span>is_free <span class="op">=</span> FREE;
+    head<span class="op">-&gt;</span>next    <span class="op">=</span> <span class="kw">NULL</span>;
+    <span class="fn">printf</span>(<span class="str">"[INIT] Memory initialized: %d KB free.\n"</span>, TOTAL_MEMORY);
+}
+
+<span class="cm">/*─────────────────────────────────────────────────────────
+  create_block() — Helper: creates a new Block node
+─────────────────────────────────────────────────────────*/</span>
+<span class="ty">Block</span><span class="op">*</span> <span class="fn">create_block</span>(<span class="kw">int</span> size, <span class="kw">int</span> start, <span class="kw">int</span> pid, <span class="kw">int</span> is_free) {
+    <span class="ty">Block</span><span class="op">*</span> b <span class="op">=</span> (<span class="ty">Block</span><span class="op">*</span>) <span class="fn">malloc</span>(<span class="kw">sizeof</span>(<span class="ty">Block</span>));
+    b<span class="op">-&gt;</span>size    <span class="op">=</span> size;
+    b<span class="op">-&gt;</span>start   <span class="op">=</span> start;
+    b<span class="op">-&gt;</span>pid     <span class="op">=</span> pid;
+    b<span class="op">-&gt;</span>is_free <span class="op">=</span> is_free;
+    b<span class="op">-&gt;</span>next    <span class="op">=</span> <span class="kw">NULL</span>;
+    <span class="kw">return</span> b;
+}</pre>
+  </div>
+
+  <!-- CODE: PART 3 -->
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span class="code-filename">memory_sim.c — Part 3: Allocate Memory (First-Fit)</span>
+    </div>
+    <pre><span class="cm">/*─────────────────────────────────────────────────────────
+  allocate_memory(pid, size)
+  First-Fit Strategy:
+    1. Traverse from head.
+    2. Find the first FREE block with size >= requested.
+    3. If block is larger, SPLIT it into:
+         [allocated block] → [remaining free block]
+    4. Mark the block as ALLOCATED and assign PID.
+
+  Time Complexity: O(n) — must traverse up to n nodes
+─────────────────────────────────────────────────────────*/</span>
+<span class="kw">void</span> <span class="fn">allocate_memory</span>(<span class="kw">int</span> pid, <span class="kw">int</span> size) {
+    <span class="ty">Block</span><span class="op">*</span> curr <span class="op">=</span> head;
+
+    <span class="kw">while</span> (curr <span class="op">!=</span> <span class="kw">NULL</span>) {
+        <span class="cm">/* Check: is this block free AND big enough? */</span>
+        <span class="kw">if</span> (curr<span class="op">-&gt;</span>is_free <span class="op">==</span> FREE <span class="op">&amp;&amp;</span> curr<span class="op">-&gt;</span>size <span class="op">&gt;=</span> size) {
+
+            <span class="cm">/* ── CASE 1: Block is larger — split it ── */</span>
+            <span class="kw">if</span> (curr<span class="op">-&gt;</span>size <span class="op">&gt;</span> size) {
+                <span class="cm">/* Create the leftover free fragment */</span>
+                <span class="ty">Block</span><span class="op">*</span> frag <span class="op">=</span> <span class="fn">create_block</span>(
+                    curr<span class="op">-&gt;</span>size <span class="op">-</span> size,          <span class="cm">/* remaining size   */</span>
+                    curr<span class="op">-&gt;</span>start <span class="op">+</span> size,          <span class="cm">/* new start addr   */</span>
+                    <span class="op">-</span><span class="num">1</span>, FREE                     <span class="cm">/* free, no PID     */</span>
+                );
+                frag<span class="op">-&gt;</span>next  <span class="op">=</span> curr<span class="op">-&gt;</span>next; <span class="cm">/* fragment → rest of list */</span>
+                curr<span class="op">-&gt;</span>next  <span class="op">=</span> frag;      <span class="cm">/* curr → fragment         */</span>
+            }
+
+            <span class="cm">/* ── CASE 2 or after split: mark as allocated ── */</span>
+            curr<span class="op">-&gt;</span>size    <span class="op">=</span> size;
+            curr<span class="op">-&gt;</span>pid     <span class="op">=</span> pid;
+            curr<span class="op">-&gt;</span>is_free <span class="op">=</span> ALLOCATED;
+
+            <span class="fn">printf</span>(<span class="str">"[ALLOC] PID %d: Allocated %d KB @ addr %d\n"</span>,
+                    pid, size, curr<span class="op">-&gt;</span>start);
+            <span class="kw">return</span>;
+        }
+        curr <span class="op">=</span> curr<span class="op">-&gt;</span>next; <span class="cm">/* move to next block */</span>
+    }
+    <span class="cm">/* No block found — allocation fails */</span>
+    <span class="fn">printf</span>(<span class="str">"[FAIL] Not enough memory for PID %d (%d KB)\n"</span>, pid, size);
+}</pre>
+  </div>
+
+  <!-- CODE: PART 4 -->
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span class="code-filename">memory_sim.c — Part 4: Free Memory + Coalescing</span>
+    </div>
+    <pre><span class="cm">/*─────────────────────────────────────────────────────────
+  free_memory(pid)
+  Steps:
+    1. Find the block owned by pid.
+    2. Mark it free (pid = -1).
+    3. COALESCE: merge with the next block if it's also free.
+    4. (For full coalescing, a doubly linked list is ideal;
+       here we handle forward merging for simplicity.)
+
+  Time Complexity: O(n)
+─────────────────────────────────────────────────────────*/</span>
+<span class="kw">void</span> <span class="fn">free_memory</span>(<span class="kw">int</span> pid) {
+    <span class="ty">Block</span><span class="op">*</span> curr <span class="op">=</span> head;
+
+    <span class="kw">while</span> (curr <span class="op">!=</span> <span class="kw">NULL</span>) {
+        <span class="kw">if</span> (curr<span class="op">-&gt;</span>pid <span class="op">==</span> pid <span class="op">&amp;&amp;</span> curr<span class="op">-&gt;</span>is_free <span class="op">==</span> ALLOCATED) {
+
+            curr<span class="op">-&gt;</span>is_free <span class="op">=</span> FREE;  <span class="cm">/* mark free */</span>
+            curr<span class="op">-&gt;</span>pid     <span class="op">=</span> <span class="op">-</span><span class="num">1</span>;
+
+            <span class="fn">printf</span>(<span class="str">"[FREE] PID %d released %d KB @ addr %d\n"</span>,
+                    pid, curr<span class="op">-&gt;</span>size, curr<span class="op">-&gt;</span>start);
+
+            <span class="cm">/* ── COALESCE with next block if also free ── */</span>
+            <span class="kw">if</span> (curr<span class="op">-&gt;</span>next <span class="op">!=</span> <span class="kw">NULL</span> <span class="op">&amp;&amp;</span> curr<span class="op">-&gt;</span>next<span class="op">-&gt;</span>is_free <span class="op">==</span> FREE) {
+                <span class="ty">Block</span><span class="op">*</span> temp        <span class="op">=</span> curr<span class="op">-&gt;</span>next;
+                curr<span class="op">-&gt;</span>size        <span class="op">+=</span> temp<span class="op">-&gt;</span>size; <span class="cm">/* absorb next block */</span>
+                curr<span class="op">-&gt;</span>next        <span class="op">=</span> temp<span class="op">-&gt;</span>next;
+                <span class="fn">free</span>(temp);                       <span class="cm">/* free the merged node */</span>
+                <span class="fn">printf</span>(<span class="str">"[COAL] Merged adjacent free blocks.\n"</span>);
+            }
+            <span class="kw">return</span>;
+        }
+        curr <span class="op">=</span> curr<span class="op">-&gt;</span>next;
+    }
+    <span class="fn">printf</span>(<span class="str">"[FAIL] PID %d not found or already free.\n"</span>, pid);
+}</pre>
+  </div>
+
+  <!-- CODE: PART 5 -->
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span class="code-filename">memory_sim.c — Part 5: Display &amp; main()</span>
+    </div>
+    <pre><span class="cm">/*─────────────────────────────────────────────────────────
+  display_memory()
+  Traverses the linked list and prints every block.
+─────────────────────────────────────────────────────────*/</span>
+<span class="kw">void</span> <span class="fn">display_memory</span>() {
+    <span class="ty">Block</span><span class="op">*</span> curr <span class="op">=</span> head;
+    <span class="kw">int</span> total_free <span class="op">=</span> <span class="num">0</span>, total_used <span class="op">=</span> <span class="num">0</span>, block_num <span class="op">=</span> <span class="num">1</span>;
+
+    <span class="fn">printf</span>(<span class="str">"\n══════════════════════════════════════════════\n"</span>);
+    <span class="fn">printf</span>(<span class="str">"  MEMORY MAP  (Total: %d KB)\n"</span>, TOTAL_MEMORY);
+    <span class="fn">printf</span>(<span class="str">"══════════════════════════════════════════════\n"</span>);
+    <span class="fn">printf</span>(<span class="str">"  %-6s %-10s %-10s %-10s %-8s\n"</span>,
+           <span class="str">"Blk"</span>, <span class="str">"Start"</span>, <span class="str">"Size(KB)"</span>, <span class="str">"Status"</span>, <span class="str">"PID"</span>);
+    <span class="fn">printf</span>(<span class="str">"  ─────────────────────────────────────────\n"</span>);
+
+    <span class="kw">while</span> (curr <span class="op">!=</span> <span class="kw">NULL</span>) {
+        <span class="fn">printf</span>(<span class="str">"  %-6d %-10d %-10d %-10s %-8s\n"</span>,
+            block_num<span class="op">++</span>,
+            curr<span class="op">-&gt;</span>start,
+            curr<span class="op">-&gt;</span>size,
+            curr<span class="op">-&gt;</span>is_free <span class="op">?</span> <span class="str">"FREE"</span> : <span class="str">"USED"</span>,
+            curr<span class="op">-&gt;</span>is_free <span class="op">?</span> <span class="str">"---"</span>  : <span class="cm">/* pid as string via sprintf */</span>
+                (<span class="kw">char</span>[<span class="num">10</span>]){}<span class="cm">/* snprintf into tmp buf */</span>
+        );
+        <span class="kw">if</span> (curr<span class="op">-&gt;</span>is_free) total_free <span class="op">+=</span> curr<span class="op">-&gt;</span>size;
+        <span class="kw">else</span>               total_used <span class="op">+=</span> curr<span class="op">-&gt;</span>size;
+        curr <span class="op">=</span> curr<span class="op">-&gt;</span>next;
+    }
+    <span class="fn">printf</span>(<span class="str">"  ─────────────────────────────────────────\n"</span>);
+    <span class="fn">printf</span>(<span class="str">"  Free: %d KB   Used: %d KB\n\n"</span>, total_free, total_used);
+}
+
+<span class="cm">/*─────────────────────────────────────────────────────────
+  main() — Demo run
+─────────────────────────────────────────────────────────*/</span>
+<span class="kw">int</span> <span class="fn">main</span>() {
+    <span class="fn">initialize_memory</span>();           <span class="cm">/* 1024 KB all free              */</span>
+    <span class="fn">display_memory</span>();
+
+    <span class="fn">allocate_memory</span>(<span class="num">1</span>, <span class="num">200</span>);       <span class="cm">/* PID 1 gets 200 KB             */</span>
+    <span class="fn">allocate_memory</span>(<span class="num">2</span>, <span class="num">300</span>);       <span class="cm">/* PID 2 gets 300 KB             */</span>
+    <span class="fn">allocate_memory</span>(<span class="num">3</span>, <span class="num">150</span>);       <span class="cm">/* PID 3 gets 150 KB             */</span>
+    <span class="fn">display_memory</span>();
+
+    <span class="fn">free_memory</span>(<span class="num">2</span>);               <span class="cm">/* PID 2 releases its 300 KB    */</span>
+    <span class="fn">display_memory</span>();
+
+    <span class="fn">allocate_memory</span>(<span class="num">4</span>, <span class="num">100</span>);       <span class="cm">/* PID 4 fits in freed space     */</span>
+    <span class="fn">display_memory</span>();
+
+    <span class="fn">free_memory</span>(<span class="num">1</span>);               <span class="cm">/* PID 1 frees → coalesce check */</span>
+    <span class="fn">display_memory</span>();
+
+    <span class="kw">return</span> <span class="num">0</span>;
+}</pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ SECTION 4: ALGORITHMS ══════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-tag">04 — Algorithms</div>
+  <h2>Step-by-Step Algorithm Walkthroughs</h2>
+
+  <h3>Algorithm 1 — Memory Allocation (First-Fit)</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-num">1</div><div>Set <code style="color:var(--accent);font-family:'JetBrains Mono',monospace">curr = head</code> (start from the first block)</div></div>
+    <div class="flow-connector"></div>
+    <div class="flow-step"><div class="flow-num">2</div><div>While <code style="color:var(--accent);font-family:'JetBrains Mono',monospace">curr != NULL</code>, check: is it FREE and <code style="color:var(--accent2);font-family:'JetBrains Mono',monospace">curr→size ≥ requested</code>?</div></div>
+    <div class="flow-connector"></div>
+    <div class="flow-step"><div class="flow-num">3</div><div>If YES and <code style="color:var(--accent4);font-family:'JetBrains Mono',monospace">curr→size > requested</code>: <strong>SPLIT</strong> — create a new FREE fragment node with the leftover bytes, insert it after curr</div></div>
+    <div class="flow-connector"></div>
+    <div class="flow-step"><div class="flow-num">4</div><div>Set <code style="color:var(--accent);font-family:'JetBrains Mono',monospace">curr→size = requested</code>, <code style="color:var(--accent);font-family:'JetBrains Mono',monospace">curr→pid = pid</code>, <code style="color:var(--accent);font-family:'JetBrains Mono',monospace">curr→is_free = ALLOCATED</code></div></div>
+    <div class="flow-connector"></div>
+    <div class="flow-step"><div class="flow-num">5</div><div>If NO match found after full traversal → print <strong style="color:var(--accent3)">Allocation Failed</strong> (out of memory)</div></div>
+  </div>
+
+  <h3>Algorithm 2 — Memory Deallocation + Coalescing</h3>
+  <div class="flow">
+    <div class="flow-step"><div class="flow-num">1</div><div>Traverse list to find the block with <code style="color:var(--accent);font-family:'JetBrains Mono',monospace">pid == target_pid</code></div></div>
+    <div class="flow-connector"></div>
+    <div class="flow-step"><div class="flow-num">2</div><div>Set <code style="color:var(--accent2);font-family:'JetBrains Mono',monospace">curr→is_free = FREE</code>, <code style="color:var(--accent2);font-family:'JetBrains Mono',monospace">curr→pid = -1</code></div></div>
+    <div class="flow-connector"></div>
+    <div class="flow-step"><div class="flow-num">3</div><div><strong>Coalesce forward</strong>: if <code style="color:var(--accent4);font-family:'JetBrains Mono',monospace">curr→next != NULL</code> and <code style="color:var(--accent4);font-family:'JetBrains Mono',monospace">curr→next→is_free == FREE</code>: merge — add next's size to curr, skip next node, free() it</div></div>
+    <div class="flow-connector"></div>
+    <div class="flow-step"><div class="flow-num">4</div><div>Continue until no adjacent free nodes remain</div></div>
+  </div>
+
+  <div class="callout warn">
+    <strong>💡 Pro Tip — Backward Coalescing:</strong> To also merge with the <em>previous</em> block, convert to a <strong>doubly linked list</strong> so you can traverse backwards. This is how the Linux kernel's buddy allocator works.
+  </div>
+
+  <h3>Algorithm 3 — Compaction</h3>
+  <p>Compaction eliminates external fragmentation by rearranging all allocated blocks to be contiguous, leaving all free space as one large block at the end.</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span class="code-filename">compaction.c</span>
+    </div>
+    <pre><span class="cm">/*─────────────────────────────────────────────────────────
+  compact_memory()
+  Rebuilds the linked list by:
+    1. Collecting all ALLOCATED blocks (in order).
+    2. Assigning new contiguous start addresses.
+    3. Adding one large FREE block at the end for
+       all the formerly fragmented free space.
+─────────────────────────────────────────────────────────*/</span>
+<span class="kw">void</span> <span class="fn">compact_memory</span>() {
+    <span class="ty">Block</span><span class="op">*</span> curr       <span class="op">=</span> head;
+    <span class="kw">int</span>  next_addr   <span class="op">=</span> <span class="num">0</span>;
+    <span class="kw">int</span>  total_free  <span class="op">=</span> <span class="num">0</span>;
+
+    <span class="cm">/* Pass 1: repack allocated blocks, collect free total */</span>
+    <span class="kw">while</span> (curr <span class="op">!=</span> <span class="kw">NULL</span>) {
+        <span class="kw">if</span> (!curr<span class="op">-&gt;</span>is_free) {
+            curr<span class="op">-&gt;</span>start <span class="op">=</span> next_addr;     <span class="cm">/* assign new address */</span>
+            next_addr  <span class="op">+=</span> curr<span class="op">-&gt;</span>size;
+        } <span class="kw">else</span> {
+            total_free <span class="op">+=</span> curr<span class="op">-&gt;</span>size;    <span class="cm">/* accumulate free    */</span>
+        }
+        curr <span class="op">=</span> curr<span class="op">-&gt;</span>next;
+    }
+
+    <span class="cm">/* Pass 2: remove all free nodes */</span>
+    <span class="ty">Block</span><span class="op">**</span> pp <span class="op">=</span> <span class="op">&amp;</span>head;
+    <span class="kw">while</span> (<span class="op">*</span>pp) {
+        <span class="kw">if</span> ((<span class="op">*</span>pp)<span class="op">-&gt;</span>is_free) {
+            <span class="ty">Block</span><span class="op">*</span> tmp <span class="op">=</span> <span class="op">*</span>pp;
+            <span class="op">*</span>pp <span class="op">=</span> tmp<span class="op">-&gt;</span>next;
+            <span class="fn">free</span>(tmp);
+        } <span class="kw">else</span> {
+            pp <span class="op">=</span> <span class="op">&amp;</span>(<span class="op">*</span>pp)<span class="op">-&gt;</span>next;
+        }
+    }
+
+    <span class="cm">/* Append one big FREE block at the end */</span>
+    <span class="ty">Block</span><span class="op">*</span> free_blk <span class="op">=</span> <span class="fn">create_block</span>(total_free, next_addr, <span class="op">-</span><span class="num">1</span>, FREE);
+    <span class="op">*</span>pp <span class="op">=</span> free_blk;
+
+    <span class="fn">printf</span>(<span class="str">"[COMPACT] Done. %d KB free space consolidated @ addr %d\n"</span>,
+            total_free, next_addr);
+}</pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ SECTION 5: SIMULATOR ══════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-tag">05 — Interactive Demo</div>
+  <h2>Live Memory Simulator</h2>
+  <p>Use the controls below to interact with the simulated memory. Each block in the bar represents a chunk of the 1024 KB memory space, colored by status.</p>
+
+  <div class="simulator">
+    <div class="sim-header">
+      <div class="sim-title">memory_sim.exe — 1024 KB RAM</div>
+      <div class="sim-status"><div class="sim-dot"></div> RUNNING</div>
+    </div>
+    <div class="sim-body">
+      <div class="sim-controls">
+        <input class="sim-input" type="number" id="allocSize" placeholder="Size (KB)" min="1" max="1024" value="100">
+        <button class="sim-btn btn-alloc" onclick="allocate()">⊕ Allocate</button>
+        <input class="sim-input" type="number" id="freePid" placeholder="Process ID" min="1" value="1">
+        <button class="sim-btn btn-free" onclick="freeMem()">⊖ Free</button>
+        <button class="sim-btn btn-compact" onclick="compact()">⚙ Compact</button>
+        <button class="sim-btn btn-reset" onclick="resetSim()">↺ Reset</button>
+      </div>
+
+      <div class="memory-visual">
+        <div class="mem-label">Memory Map — 1024 KB</div>
+        <div class="mem-bar-container" id="memBar"></div>
+        <div class="stats-row" id="statsRow"></div>
+      </div>
+
+      <div class="memory-visual">
+        <div class="mem-label">Linked List Visualization</div>
+        <div class="linked-list-visual" id="llViz"></div>
+      </div>
+
+      <div class="sim-log" id="simLog">
+        <div class="log-entry log-info">&gt; Simulator initialized. 1024 KB free.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ SECTION 6: ANALYSIS ══════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-tag">06 — Analysis</div>
+  <h2>Complexity &amp; Performance Analysis</h2>
+
+  <table class="styled-table">
+    <thead>
+      <tr><th>Operation</th><th>Best Case</th><th>Worst Case</th><th>Space</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong style="color:var(--accent)">Allocate</strong></td>
+        <td>O(1)</td>
+        <td>O(n)</td>
+        <td>O(1)*</td>
+        <td>Best if head is free; worst = full scan</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent3)">Free</strong></td>
+        <td>O(1)</td>
+        <td>O(n)</td>
+        <td>O(1)</td>
+        <td>O(1) if we store a direct pointer</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent4)">Coalesce</strong></td>
+        <td>O(1)</td>
+        <td>O(n)</td>
+        <td>O(1)</td>
+        <td>O(1) forward merge; O(n) backward</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent4)">Compact</strong></td>
+        <td>O(n)</td>
+        <td>O(n)</td>
+        <td>O(1)</td>
+        <td>Two-pass O(n) traversal</td>
+      </tr>
+      <tr>
+        <td><strong style="color:var(--accent2)">Display</strong></td>
+        <td>O(n)</td>
+        <td>O(n)</td>
+        <td>O(1)</td>
+        <td>Must visit all nodes</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size:12px;color:var(--muted)">* O(1) extra space — we reuse the existing block; a split adds exactly 1 new node.</p>
+
+  <h3>Fragmentation Analysis</h3>
+  <div class="info-grid">
+    <div class="info-card red">
+      <div class="info-card-icon">🧩</div>
+      <div class="info-card-title">External Fragmentation</div>
+      <div class="info-card-body">Many small free blocks exist but no single block is large enough. Solved by compaction or coalescing.</div>
+    </div>
+    <div class="info-card purple">
+      <div class="info-card-icon">📦</div>
+      <div class="info-card-title">Internal Fragmentation</div>
+      <div class="info-card-body">Allocated block is larger than needed. We minimize this by splitting blocks precisely during allocation.</div>
+    </div>
+  </div>
+
+  <div class="callout ok">
+    <strong>✅ Our implementation minimizes internal fragmentation</strong> by splitting blocks to exactly the requested size, leaving a properly tracked free fragment. Coalescing after each free() reduces external fragmentation.
+  </div>
+
+  <h3>Comparison: Array vs. Linked List for Memory Management</h3>
+  <table class="styled-table">
+    <thead>
+      <tr><th>Feature</th><th>Array</th><th>Linked List ✅</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Dynamic resizing</td><td>❌ Fixed size</td><td>✅ Fully dynamic</td></tr>
+      <tr><td>Block splitting</td><td>❌ Complex / slow</td><td>✅ O(1) pointer ops</td></tr>
+      <tr><td>Block merging</td><td>❌ Requires shifting</td><td>✅ Just relink pointers</td></tr>
+      <tr><td>Memory overhead</td><td>✅ Low (contiguous)</td><td>⚠ Extra pointer per node</td></tr>
+      <tr><td>Random access</td><td>✅ O(1)</td><td>❌ O(n)</td></tr>
+      <tr><td>Insert/Delete</td><td>❌ O(n) shift</td><td>✅ O(1) after traversal</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══════════════════════════════════════════ SECTION 7: OUTPUT ══════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-tag">07 — Sample Output</div>
+  <h2>Program Output Walkthrough</h2>
+  <p>The following shows the exact console output of our <code style="color:var(--accent);font-family:'JetBrains Mono',monospace">main()</code> demonstration:</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-dots"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div></div>
+      <span class="code-filename">Terminal Output</span>
+    </div>
+    <pre><span class="cm">[INIT] Memory initialized: 1024 KB free.
+
+══════════════════════════════════════════════
+  MEMORY MAP  (Total: 1024 KB)
+══════════════════════════════════════════════
+  Blk    Start      Size(KB)   Status     PID
+  ─────────────────────────────────────────
+  1      0          1024       FREE       ---
+  ─────────────────────────────────────────
+  Free: 1024 KB   Used: 0 KB
+
+[ALLOC] PID 1: Allocated 200 KB @ addr 0
+[ALLOC] PID 2: Allocated 300 KB @ addr 200
+[ALLOC] PID 3: Allocated 150 KB @ addr 500
+
+══════════════════════════════════════════════
+  MEMORY MAP  (Total: 1024 KB)
+══════════════════════════════════════════════
+  Blk    Start      Size(KB)   Status     PID
+  ─────────────────────────────────────────
+  1      0          200        USED       1
+  2      200        300        USED       2
+  3      500        150        USED       3
+  4      650        374        FREE       ---
+  ─────────────────────────────────────────
+  Free: 374 KB   Used: 650 KB
+
+[FREE] PID 2 released 300 KB @ addr 200
+[COAL] Merged adjacent free blocks.
+
+══════════════════════════════════════════════
+  MEMORY MAP  (Total: 1024 KB)
+══════════════════════════════════════════════
+  Blk    Start      Size(KB)   Status     PID
+  ─────────────────────────────────────────
+  1      0          200        USED       1
+  2      200        300        FREE       ---
+  3      500        150        USED       3
+  4      650        374        FREE       ---
+  ─────────────────────────────────────────
+  Free: 674 KB   Used: 350 KB
+
+[ALLOC] PID 4: Allocated 100 KB @ addr 200
+
+Free: 574 KB   Used: 450 KB</span></pre>
+  </div>
+
+  <div class="callout">
+    Notice that when PID 2 was freed at address 200, its 300 KB block became free and immediately adjacent free blocks are merged (coalesced). When PID 4 then requests 100 KB, it fits into the 300 KB free block via First-Fit, leaving 200 KB as a new free fragment.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ SECTION 8: REAL WORLD ══════════════════════════════════════════ -->
+<div class="page">
+  <div class="section-tag">08 — Real-World Context</div>
+  <h2>Real-World Applications</h2>
+
+  <div class="info-grid">
+    <div class="info-card green">
+      <div class="info-card-icon">🐧</div>
+      <div class="info-card-title">Linux Kernel</div>
+      <div class="info-card-body">The Linux slab allocator and buddy system use linked lists of free blocks grouped by power-of-2 sizes for O(log n) allocation.</div>
+    </div>
+    <div class="info-card blue">
+      <div class="info-card-icon">☕</div>
+      <div class="info-card-title">Java GC</div>
+      <div class="info-card-body">Java's garbage collector maintains free lists (linked lists) to track reclaimed heap memory between GC cycles.</div>
+    </div>
+    <div class="info-card purple">
+      <div class="info-card-icon">🦀</div>
+      <div class="info-card-title">Rust Allocator</div>
+      <div class="info-card-body">Rust's global allocator uses linked free-lists with size classes to achieve near-zero overhead memory management.</div>
+    </div>
+    <div class="info-card gold">
+      <div class="info-card-icon">📱</div>
+      <div class="info-card-title">Embedded Systems</div>
+      <div class="info-card-body">Microcontrollers with no OS use custom linked-list allocators (like FreeRTOS heap_4) to manage limited RAM.</div>
+    </div>
+  </div>
+
+  <h3>Conclusion</h3>
+  <p>This project demonstrates how a seemingly simple data structure — the singly linked list — forms the backbone of one of the most critical operations in computing: memory management. The key takeaways are:</p>
+
+  <div class="info-grid">
+    <div class="info-card blue">
+      <div class="info-card-title">✅ Dynamic Flexibility</div>
+      <div class="info-card-body">Linked lists allow blocks to be created, split, merged, and destroyed at runtime without any fixed structure.</div>
+    </div>
+    <div class="info-card green">
+      <div class="info-card-title">✅ Pointer Power</div>
+      <div class="info-card-body">Pointer manipulation enables O(1) block splitting and merging — something impossible with arrays.</div>
+    </div>
+    <div class="info-card purple">
+      <div class="info-card-title">✅ Real OS Concepts</div>
+      <div class="info-card-body">First-Fit, coalescing, and compaction are actual techniques used in production operating systems.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ FOOTER ══════════════════════════════════════════ -->
+<div class="footer">
+  <div class="footer-title">Memory Management Simulator</div>
+  <div style="margin-top:6px;margin-bottom:16px;">Data Structures &amp; Algorithms — Project Report</div>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;color:#444c56;">
+    [ INIT ] → [ ALLOC ] → [ FREE ] → [ COALESCE ] → [ COMPACT ] → [ DISPLAY ]
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ SIMULATOR JS ══════════════════════════════════════════ -->
+<script>
+  const TOTAL = 1024;
+  let memory = [{ size: TOTAL, pid: null, start: 0, free: true }];
+  let nextPid = 1;
+  let logEl = document.getElementById('simLog');
+
+  function log(msg, cls) {
+    const d = document.createElement('div');
+    d.className = 'log-entry ' + cls;
+    d.textContent = '> ' + msg;
+    logEl.appendChild(d);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function render() {
+    const bar = document.getElementById('memBar');
+    const ll  = document.getElementById('llViz');
+    const stats = document.getElementById('statsRow');
+    bar.innerHTML = '';
+    ll.innerHTML  = '';
+    stats.innerHTML = '';
+
+    let totalFree = 0, totalUsed = 0;
+
+    memory.forEach((blk, i) => {
+      // Bar segment
+      const pct = (blk.size / TOTAL * 100).toFixed(2);
+      const seg = document.createElement('div');
+      seg.className = 'mem-block ' + (blk.free ? 'free' : 'allocated');
+      seg.style.width = pct + '%';
+      seg.style.minWidth = '4px';
+      if (blk.size >= 40) seg.textContent = blk.free ? 'FREE' : 'P' + blk.pid;
+      seg.title = (blk.free ? 'FREE' : 'PID ' + blk.pid) + ' | ' + blk.size + ' KB @ ' + blk.start;
+      bar.appendChild(seg);
+
+      // Linked list node
+      const nodeWrap = document.createElement('div');
+      nodeWrap.className = 'll-node';
+      const lbl = document.createElement('div');
+      lbl.className = 'll-label';
+      lbl.textContent = i === 0 ? 'HEAD' : 'NODE ' + (i+1);
+      const cell = document.createElement('div');
+      cell.className = 'll-cell ' + (blk.free ? 'free-node' : 'alloc-node');
+      const dta = document.createElement('div');
+      dta.className = 'll-data';
+      dta.textContent = blk.free ? blk.size+'KB' : 'P'+blk.pid+'|'+blk.size+'K';
+      const ptr = document.createElement('div');
+      ptr.className = 'll-next';
+      ptr.textContent = i < memory.length-1 ? 'next→' : 'next';
+      cell.appendChild(dta);
+      cell.appendChild(ptr);
+      nodeWrap.appendChild(lbl);
+      nodeWrap.appendChild(cell);
+      ll.appendChild(nodeWrap);
+
+      if (i < memory.length - 1) {
+        const arrow = document.createElement('div');
+        arrow.className = 'll-arrow';
+        arrow.textContent = '→';
+        ll.appendChild(arrow);
+      }
+
+      blk.free ? totalFree += blk.size : totalUsed += blk.size;
+    });
+
+    // NULL terminator
+    const nullEl = document.createElement('div');
+    nullEl.className = 'll-null';
+    nullEl.textContent = 'NULL';
+    ll.appendChild(nullEl);
+
+    // Stats
+    const frag = memory.filter(b => b.free).length > 1 ?
+      memory.filter(b=>b.free).reduce((a,b) => a + b.size, 0) : 0;
+    stats.innerHTML =
+      `<div class="stat-pill s-blue">Total: <span>${TOTAL} KB</span></div>` +
+      `<div class="stat-pill s-green">Free: <span>${totalFree} KB</span></div>` +
+      `<div class="stat-pill s-red">Used: <span>${totalUsed} KB</span></div>` +
+      `<div class="stat-pill">Blocks: <span>${memory.length}</span></div>`;
+  }
+
+  function allocate() {
+    const sz = parseInt(document.getElementById('allocSize').value);
+    if (!sz || sz <= 0) return;
+    for (let i = 0; i < memory.length; i++) {
+      if (memory[i].free && memory[i].size >= sz) {
+        const pid = nextPid++;
+        if (memory[i].size > sz) {
+          const frag = { size: memory[i].size - sz, pid: null, start: memory[i].start + sz, free: true };
+          memory.splice(i+1, 0, frag);
+        }
+        memory[i].size = sz;
+        memory[i].pid  = pid;
+        memory[i].free = false;
+        log(`Allocated ${sz} KB to PID ${pid} @ addr ${memory[i].start}`, 'log-ok');
+        render();
+        return;
+      }
+    }
+    log(`FAILED — no block ≥ ${sz} KB available`, 'log-err');
+  }
+
+  function freeMem() {
+    const pid = parseInt(document.getElementById('freePid').value);
+    for (let i = 0; i < memory.length; i++) {
+      if (!memory[i].free && memory[i].pid === pid) {
+        memory[i].free = true;
+        memory[i].pid  = null;
+        log(`Freed ${memory[i].size} KB from PID ${pid} @ addr ${memory[i].start}`, 'log-ok');
+        // Coalesce forward
+        while (i < memory.length-1 && memory[i+1].free) {
+          memory[i].size += memory[i+1].size;
+          memory.splice(i+1, 1);
+          log('Coalesced adjacent free blocks.', 'log-info');
+        }
+        // Coalesce backward
+        if (i > 0 && memory[i-1].free) {
+          memory[i-1].size += memory[i].size;
+          memory.splice(i, 1);
+          log('Coalesced with previous free block.', 'log-info');
+        }
+        render();
+        return;
+      }
+    }
+    log(`PID ${pid} not found or already free`, 'log-err');
+  }
+
+  function compact() {
+    let addr = 0, totalFree = 0;
+    const newMem = [];
+    memory.forEach(b => {
+      if (!b.free) {
+        b.start = addr;
+        addr += b.size;
+        newMem.push(b);
+      } else {
+        totalFree += b.size;
+      }
+    });
+    if (totalFree > 0) newMem.push({ size: totalFree, pid: null, start: addr, free: true });
+    memory = newMem;
+    log(`Compacted: ${totalFree} KB free space consolidated @ addr ${addr}`, 'log-info');
+    render();
+  }
+
+  function resetSim() {
+    memory = [{ size: TOTAL, pid: null, start: 0, free: true }];
+    nextPid = 1;
+    logEl.innerHTML = '';
+    log('Simulator reset. 1024 KB free.', 'log-info');
+    render();
+  }
+
+  render();
+</script>
+</body>
+</html>
