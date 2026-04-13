@@ -157,7 +157,7 @@ gcc memory\_sim.c -o memory\_sim
 
 ## 👨‍💻 Author
 
-**Rakshit**  
+**Yashika**  
 BCA Data Science Student
 
 \---
